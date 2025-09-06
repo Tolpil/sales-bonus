@@ -6,6 +6,8 @@
  */
 function calculateSimpleRevenue(purchase, _product) {
    // @TODO: Расчет выручки от операции
+   const discont = 1 - purchase.discont / 100;
+   return (revenue = purchase.sale_price * purchase.quantity * discont);
 }
 
 /**
@@ -17,7 +19,31 @@ function calculateSimpleRevenue(purchase, _product) {
  */
 function calculateBonusByProfit(index, total, seller) {
     // @TODO: Расчет бонуса от позиции в рейтинге
-}
+    const {profit} = seller;
+    if (typeof profit !== 'number' || profit < 0) {
+      throw new Error('Не корректное значение прибыли');
+    }
+
+    let bonusPercent = 0;
+
+    if (total === 0) {
+      return 0;
+    }
+
+    if (index === 0) {
+      bonusPercent = 0.15;
+    } else if (index === 1 || index === 2) {
+      bonusPercent = 0.10;
+    } else if (index < total -1) {
+      bonusPercent = 0.05;
+    } //else {
+    //   bonusPercent = 0;
+    // }
+    // return bonusPercent;
+
+    return profit * bonusPercent;
+  }
+
 
 /**
  * Функция для анализа данных продаж
