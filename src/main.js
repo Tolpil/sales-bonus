@@ -53,8 +53,46 @@ function calculateBonusByProfit(index, total, seller) {
  */
 function analyzeSalesData(data, options) {
     // @TODO: Проверка входных данных
+    if (!data || !options) {
+      throw new Error('Не переданы обязательные параметры');
+    }
+    const { calculateRevenue, calculateBonus } = options;
 
     // @TODO: Проверка наличия опций
+    if (typeof calculateRevenue !== 'function') {
+      throw new Error('Не указана функция расчёта выручки');
+    }
+    if (typeof calculateBonus !== 'function') {
+      throw new Error('Не указана функция расчёта бонуса');
+    }
+
+    const sellersIndex = new Map();
+    const productsIndex = new Map();
+
+    data.forEach(sale => {
+      const sellerId = sale.seller_id;
+      const productId = sale.productId;
+
+      if (!sellersIndex.has(sellerId)) {
+            sellersIndex.set(sellerId, {
+                seller_id: sellerId,
+                name: sale.seller_name,
+                revenue: 0,
+                profit: 0,
+                sales_count: 0,
+                products: new Map()
+            });
+        }
+
+        if (!productsIndex.has(productId)) {
+            productsIndex.set(productId, {
+                sku: sale.product_sku,
+                name: sale.product_name
+            });
+        }
+
+
+    });
 
     // @TODO: Подготовка промежуточных данных для сбора статистики
 
