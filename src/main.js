@@ -15,9 +15,11 @@ function calculateSimpleRevenue(purchase, _product) {
     if (typeof quantity !== 'number' || quantity <= 0) {
         throw new Error('Некорректное количество');
     }
-    const discountDecimal = discount / 100;
-    const fullPrice = sale_price * quantity;
-    const revenue = fullPrice * (1 - discountDecimal);
+    //const discountDecimal = discount / 100;
+    const discountDecimal = 1 - (discount / 100);
+    //const fullPrice = sale_price * quantity;
+    //const revenue = fullPrice * (1 - discountDecimal);
+    const revenue = sale_price * quantity * discountDecimal;
     return revenue;
 }
 
@@ -85,7 +87,7 @@ function analyzeSalesData(data, options) {
     // }
 
     // @TODO: Подготовка промежуточных данных для сбора статистики
-    // const sellersIndex = new Map();
+    // const sellerIndex = new Map();
     // const productsIndex = new Map();
 
     const sellerIndex = data.sellers.reduce((index, seller) => {
@@ -102,10 +104,10 @@ function analyzeSalesData(data, options) {
         };
     }, {});
 
-    const productIndex = Object.fromEntries(data.products.map(product => [
-        product.sku, 
-        product
-    ]));
+    // const productIndex = Object.fromEntries(data.products.map(product => [
+    //     product.sku, 
+    //     product
+    // ]));
 
     // let totalSales = 0;
     // let totalRevenue = 0;
@@ -115,19 +117,104 @@ function analyzeSalesData(data, options) {
     //     const sellerId = sale.seller_id;
     //     const productId = sale.product_id;
 
-        if (!sellerIndex.has(sellerId)) {
-            throw new Error(`Не найден продавец с ID: ${sellerId}`);
-        }
+        // if (!sellerIndex.has(sellerId)) {
+        //     throw new Error(`Не найден продавец с ID: ${sellerId}`);
+        // }
 
     //     const sellerStat = sellersIndex.get(sellerId);
 
     // @TODO: Индексация продавцов и товаров для быстрого доступа
 
     // @TODO: Расчет выручки и прибыли для каждого продавца
+    const discountFactor = 1 - (discount / 100);
+    const revenue = sale_price * quantity * discountFactor;
+    if (revenue < 0) {
+        throw new Error('Ошибка расчета выручки: отрицательное значение');
+    }
+    
+    return revenue;
 
     // @TODO: Сортировка продавцов по прибыли
+    const sortedSellers = Object.values(sellerIndex).sort((a, b) => {
+        return b.profit - a.profit;
+    });
+    //const sortedSellers = sortSellersByProfit(Object.values(sellerIndex));
 
     // @TODO: Назначение премий на основе ранжирования
+    sortedSellers.forEach((seller, index) => {
+    //const bonus = options.calculateBonus(index, sortedSellers.length, seller);
+    seller.bonus = options.calculateBonus(index, sortedSellers.length, seller);
+    seller.top_products = Object.entries(seller.products_sold)
+            .map(([sku, quantity]) => ({
+                sku: sku,
+                quantity: quantity,
+                product_name: productIndex[sku].name
+            }))
+            .sort((a, b) => b.quantity - a.quantity)
+            .slice(0, 10);
+    });
+
+    return sortedSellers.map(seller => ({
+        seller_id: seller.id,
+        name: seller.name,
+        revenue: +seller.revenue.toFixed(2),
+        profit: +seller.profit.toFixed(2),
+        sales_count: seller.sales_count,
+        top_products: seller.top_products,
+        bonus: +seller.bonus.toFixed(2)
+    }));
+
 
     // @TODO: Подготовка итоговой коллекции с нужными полями
+
+    data.purchase_records.forEach(record => {
+        const seller = sellerIndex[record.seller_id];
+
+        if (!seller) {
+            throw new Error(`Не найден продавец с ID: ${record.seller_id}`);
+        }
+
+        seller.sales_count++;
+        totalSales++;
+
+        record.items.forEach(item => {
+            const product = productIndex[item.sku];
+
+            if (!product) {
+                throw new Error(`Не найден товар с SKU: ${item.sku}`);
+            }
+
+            const revenue = calculateRevenue(item, product);
+            checkRevenue += revenue;
+
+            const cost = product.purchase_price * item.quantity;
+
+            const profit = revenue - cost;
+            checkProfit += profit;
+
+            if (!seller.products_sold[item.sku]) {
+                seller.products_sold[item.sku] = 0;
+            }
+            seller.products_sold[item.sku] += item.quantity;
+        });
+      });
+
+      data.purchase_records.forEach(record => {
+    if (!record.items || !Array.isArray(record.items)) {
+        throw new Error('Некорректные данные в чеке');
+    }
+    
+    record.items.forEach(item => {
+        if (!item.sku || !item.quantity || !item.sale_price) {
+            throw new Error('Неполные данные о товаре в чеке');
+        }
+    });
+});
+
+Object.values(productIndex).forEach(product => {
+    if (!product.purchase_price) {
+        throw new Error('Отсутствует закупочная цена товара');
+    }
+});
+
 }
