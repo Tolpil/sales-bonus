@@ -5,9 +5,20 @@
  * @returns {number}
  */
 function calculateSimpleRevenue(purchase, _product) {
-   // @TODO: Расчет выручки от операции
-   const discont = 1 - purchase.discont / 100;
-   return (revenue = purchase.sale_price * purchase.quantity * discont);
+   // @TODO: Расчет выручки от операциия
+  //  const discount = 1 - purchase.discount / 100;
+  // return (revenue = purchase.sale_price * purchase.quantity * discount);
+  const {discount = 0, sale_price, quantity} = purchase;
+  if (typeof sale_price !== 'number' || sale_price <= 0) {
+        throw new Error('Некорректная цена продажи');
+    }
+    if (typeof quantity !== 'number' || quantity <= 0) {
+        throw new Error('Некорректное количество');
+    }
+    const discountDecimal = discount / 100;
+    const fullPrice = sale_price * quantity;
+    const revenue = fullPrice * (1 - discountDecimal);
+    return revenue;
 }
 
 /**
@@ -19,31 +30,28 @@ function calculateSimpleRevenue(purchase, _product) {
  */
 function calculateBonusByProfit(index, total, seller) {
     // @TODO: Расчет бонуса от позиции в рейтинге
-    const {profit} = seller;
-    if (typeof profit !== 'number' || profit < 0) {
-      throw new Error('Не корректное значение прибыли');
-    }
+    const { profit } = seller || {};
 
-    let bonusPercent = 0;
-
-    if (total === 0) {
-      return 0;
-    }
-
-    if (index === 0) {
-      bonusPercent = 0.15;
-    } else if (index === 1 || index === 2) {
-      bonusPercent = 0.10;
-    } else if (index < total -1) {
-      bonusPercent = 0.05;
-    } //else {
-    //   bonusPercent = 0;
-    // }
-    // return bonusPercent;
-
-    return profit * bonusPercent;
+     if (typeof profit !== 'number' || profit < 0) {
+    throw new Error('Некорректное значение прибыли');
+  }
+  if (!Number.isInteger(index) || index < 0 || !Number.isInteger(total) || total < 0 || index >= total) {
+    throw new Error('Некорректные аргументы ранжирования');
+  }
+  if (total === 0) {
+    return 0;
   }
 
+  if (index === 0) {
+    return profit * 0.15;
+  } else if (index === 1 || index === 2) {
+    return profit * 0.10;
+  } else if (index === total - 1) {
+    return 0;
+  } else {
+    return profit * 0.05;
+  }
+}
 
 /**
  * Функция для анализа данных продаж
@@ -53,46 +61,8 @@ function calculateBonusByProfit(index, total, seller) {
  */
 function analyzeSalesData(data, options) {
     // @TODO: Проверка входных данных
-    if (!data || !options) {
-      throw new Error('Не переданы обязательные параметры');
-    }
-    const { calculateRevenue, calculateBonus } = options;
 
     // @TODO: Проверка наличия опций
-    if (typeof calculateRevenue !== 'function') {
-      throw new Error('Не указана функция расчёта выручки');
-    }
-    if (typeof calculateBonus !== 'function') {
-      throw new Error('Не указана функция расчёта бонуса');
-    }
-
-    const sellersIndex = new Map();
-    const productsIndex = new Map();
-
-    data.forEach(sale => {
-      const sellerId = sale.seller_id;
-      const productId = sale.productId;
-
-      if (!sellersIndex.has(sellerId)) {
-            sellersIndex.set(sellerId, {
-                seller_id: sellerId,
-                name: sale.seller_name,
-                revenue: 0,
-                profit: 0,
-                sales_count: 0,
-                products: new Map()
-            });
-        }
-
-        if (!productsIndex.has(productId)) {
-            productsIndex.set(productId, {
-                sku: sale.product_sku,
-                name: sale.product_name
-            });
-        }
-
-
-    });
 
     // @TODO: Подготовка промежуточных данных для сбора статистики
 
