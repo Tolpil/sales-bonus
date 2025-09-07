@@ -61,10 +61,65 @@ function calculateBonusByProfit(index, total, seller) {
  */
 function analyzeSalesData(data, options) {
     // @TODO: Проверка входных данных
+    if (!data || !options) {
+        throw new Error('Не переданы входные данные');
+    }
 
     // @TODO: Проверка наличия опций
+    const {calculateRevenue, calculateBonus } = options;
+
+    if (typeof calculateBonus !== 'function') {
+        throw new Error('Не указана функция расчёта бонуса');
+    }
+
+    if (typeof calculateRevenue !== 'function') {
+        throw new Error('Не указана функция расчёта выручки');
+    }
+
+    // if (typeof calculateBonus === 'function') {
+    //     throw new Error('Не указана функция расчёта бонуса');
+    // }
+
+    // if (typeof calculateRevenue === 'function') {
+    //     throw new Error('Не указана функция расчёта выручки');
+    // }
 
     // @TODO: Подготовка промежуточных данных для сбора статистики
+    // const sellersIndex = new Map();
+    // const productsIndex = new Map();
+
+    const sellerIndex = data.sellers.reduce((index, seller) => {
+        return {
+            ...index,
+            [seller.id]: {
+                id: seller.id,
+                name: `${seller.first_name} ${seller.last_name}`,
+                revenue: 0,
+                profit: 0,
+                sales_count: 0,
+                products_sold: {}
+            }
+        };
+    }, {});
+
+    const productIndex = Object.fromEntries(data.products.map(product => [
+        product.sku, 
+        product
+    ]));
+
+    // let totalSales = 0;
+    // let totalRevenue = 0;
+    // let totalProfit = 0;
+
+    // data.sales.forEach(sale => {
+    //     const sellerId = sale.seller_id;
+    //     const productId = sale.product_id;
+
+        if (!sellerIndex.has(sellerId)) {
+            throw new Error(`Не найден продавец с ID: ${sellerId}`);
+        }
+
+    //     const sellerStat = sellersIndex.get(sellerId);
 
     // @TODO: Индексация продавцов и товаров для быстрого доступа
 
