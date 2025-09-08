@@ -68,8 +68,12 @@ function calculateBonusByProfit(index, total, seller) {
  */
 function analyzeSalesData(data, options) {
     // @TODO: Проверка входных данных
-    if (!data || !options) {
-        throw new Error("Не переданы входные данные");
+    if (!data || 
+        !Array.isArray(data.sellers) || !data.sellers.length ||
+        !Array.isArray(data.products) || !data.products.length ||
+        !Array.isArray(data.purchase_records)) {
+        
+        throw new Error("Некорректные входные данные");
     }
     // @TODO: Проверка наличия опций
     const { calculateRevenue, calculateBonus } = options;
