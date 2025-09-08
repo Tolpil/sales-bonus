@@ -75,6 +75,10 @@ function analyzeSalesData(data, options) {
         
         throw new Error("Некорректные входные данные");
     }
+
+    if (data.purchase_records.length === 0) {
+        return [];
+    }
     // @TODO: Проверка наличия опций
     const { calculateRevenue, calculateBonus } = options;
 
