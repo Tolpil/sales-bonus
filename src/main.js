@@ -18,8 +18,8 @@ function calculateSimpleRevenue(purchase, _product) {
         throw new Error("Некорректный процент скидки");
     }
 
-    const discountDecimal = 1 - discount / 100;
-    const revenue = sale_price * quantity * discountDecimal;
+    const discountDecimal = 1 - purchase.discount / 100;
+    const revenue = purchase.sale_price * purchase.quantity * discountDecimal;
 
     if (revenue < 0) {
         throw new Error("Ошибка расчета выручки: отрицательное значение");
