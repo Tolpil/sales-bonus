@@ -6,8 +6,26 @@
  */
 function calculateSimpleRevenue(purchase, _product) {
     // @TODO: Расчет выручки от операции
-    const discount = 1 - purchase.discount / 100;
-  return (revenue = purchase.sale_price * purchase.quantity * discount);
+    const { discount = 0, sale_price, quantity } = purchase;
+
+    if (typeof sale_price !== "number" || sale_price <= 0) {
+        throw new Error("Некорректная цена продажи");
+    }
+    if (typeof quantity !== "number" || quantity <= 0) {
+        throw new Error("Некорректное количество");
+    }
+    if (typeof discount !== "number" || discount < 0 || discount > 100) {
+        throw new Error("Некорректный процент скидки");
+    }
+
+    const discountDecimal = 1 - discount / 100;
+    const revenue = sale_price * quantity * discountDecimal;
+
+    if (revenue < 0) {
+        throw new Error("Ошибка расчета выручки: отрицательное значение");
+    }
+
+    return revenue;
 }
 
 /**
@@ -145,20 +163,20 @@ function analyzeSalesData(data, options) {
     const sortedSellers = Object.values(sellerIndex).sort((a, b) => b.profit - a.profit);
 
     // @TODO: Назначение премий на основе ранжирования
-    sortedSellers.forEach((seller, index) => {
-        // Рассчитываем бонус
-        seller.bonus = calculateBonus(index, sortedSellers.length, seller);
+    // sortedSellers.forEach((seller, index) => {
+    //     // Рассчитываем бонус
+    //     seller.bonus = calculateBonus(index, sortedSellers.length, seller);
 
-        // Формируем топ-10 товаров
-        seller.top_products = Object.entries(seller.products_sold)
-            .map(([sku, quantity]) => ({
-                sku: sku,
-                quantity: quantity,
-                product_name: productIndex[sku].name,
-            }))
-            .sort((a, b) => b.quantity - a.quantity)
-            .slice(0, 10);
-    });
+    //     // Формируем топ-10 товаров
+    //     seller.top_products = Object.entries(seller.products_sold)
+    //         .map(([sku, quantity]) => ({
+    //             sku: sku,
+    //             quantity: quantity,
+    //             product_name: productIndex[sku].name,
+    //         }))
+    //         .sort((a, b) => b.quantity - a.quantity)
+    //         .slice(0, 10);
+    // });
 
     // @TODO: Подготовка итоговой коллекции с нужными полями
     return sortedSellers.map((seller) => ({
