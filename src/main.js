@@ -6,26 +6,8 @@
  */
 function calculateSimpleRevenue(purchase, _product) {
     // @TODO: Расчет выручки от операции
-    const { discount = 0, sale_price, quantity } = purchase;
-
-    if (typeof sale_price !== "number" || sale_price <= 0) {
-        throw new Error("Некорректная цена продажи");
-    }
-    if (typeof quantity !== "number" || quantity <= 0) {
-        throw new Error("Некорректное количество");
-    }
-    if (typeof discount !== "number" || discount < 0 || discount > 100) {
-        throw new Error("Некорректный процент скидки");
-    }
-
-    const discountDecimal = 1 - purchase.discount / 100;
-    const revenue = purchase.sale_price * purchase.quantity * discountDecimal;
-
-    if (revenue < 0) {
-        throw new Error("Ошибка расчета выручки: отрицательное значение");
-    }
-
-    return revenue;
+    const discount = 1 - purchase.discount / 100;
+  return (revenue = purchase.sale_price * purchase.quantity * discount);
 }
 
 /**
