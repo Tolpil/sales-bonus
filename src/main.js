@@ -163,20 +163,20 @@ function analyzeSalesData(data, options) {
     const sortedSellers = Object.values(sellerIndex).sort((a, b) => b.profit - a.profit);
 
     // @TODO: Назначение премий на основе ранжирования
-    // sortedSellers.forEach((seller, index) => {
-    //     // Рассчитываем бонус
-    //     seller.bonus = calculateBonus(index, sortedSellers.length, seller);
+    sortedSellers.forEach((seller, index) => {
+        // Рассчитываем бонус
+        seller.bonus = calculateBonus(index, sortedSellers.length, seller);
 
-    //     // Формируем топ-10 товаров
-    //     seller.top_products = Object.entries(seller.products_sold)
-    //         .map(([sku, quantity]) => ({
-    //             sku: sku,
-    //             quantity: quantity,
-    //             product_name: productIndex[sku].name,
-    //         }))
-    //         .sort((a, b) => b.quantity - a.quantity)
-    //         .slice(0, 10);
-    // });
+        // Формируем топ-10 товаров
+        seller.top_products = Object.entries(seller.products_sold)
+            .map(([sku, quantity]) => ({
+                sku: sku,
+                quantity: quantity,
+                product_name: productIndex[sku].name,
+            }))
+            .sort((a, b) => b.quantity - a.quantity)
+            .slice(0, 10);
+    });
 
     // @TODO: Подготовка итоговой коллекции с нужными полями
     return sortedSellers.map((seller) => ({
