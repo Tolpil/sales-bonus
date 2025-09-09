@@ -106,14 +106,15 @@ function analyzeSalesData(data, options) {
         }
 
         record.items.forEach((item) => {
-            if (!item.sku || !item.quantity || !item.sale_price) {
+            if (!item.sku || typeof item.quantity !== "number" || item.quantity <= 0 || 
+                typeof item.sale_price !== "number" || item.sale_price <= 0) {
                 throw new Error("Неполные данные о товаре в чеке");
             }
         });
     });
 
-    Object.values(productIndex).forEach((product) => {
-        if (!product.purchase_price) {
+    data.products.forEach((product) => {
+        if (typeof product.purchase_price !== "number" || product.purchase_price <= 0) {
             throw new Error("Отсутствует закупочная цена товара");
         }
     });
@@ -126,7 +127,7 @@ function analyzeSalesData(data, options) {
             throw new Error(`Не найден продавец с ID: ${record.seller_id}`);
         }
 
-        // Количество продаж
+        
         seller.sales_count += 1;
         seller.revenue += record.total_amount;
 
@@ -137,27 +138,21 @@ function analyzeSalesData(data, options) {
                 throw new Error(`Не найден товар с SKU: ${item.sku}`);
             }
 
-            // Рассчитываем выручку
-            let revenue = options.calculateRevenue(item, product);
+            
+            let revenue = calculateRevenue(item, product);
 
-            // Рассчитываем себестоимость
+            
             const cost = product.purchase_price * item.quantity;
 
-            // Рассчитываем прибыль
+            
             seller.profit += revenue - cost;
 
-            // Статистика по товарам
+            
             if (!seller.products_sold[item.sku]) {
                 seller.products_sold[item.sku] = 0;
             }
             seller.products_sold[item.sku] += item.quantity;
         });
-
-        // Статистика продавца
-        seller.top_products = Object.entries(seller.products_sold).map(([a, b]) => ({
-            sku: a,
-            quantity: b,
-        }));
     });
 
     // @TODO: Сортировка продавцов по прибыли
