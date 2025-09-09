@@ -160,15 +160,16 @@ function analyzeSalesData(data, options) {
 
     // @TODO: Назначение премий на основе ранжирования
     sortedSellers.forEach((seller, index) => {
-        // Рассчитываем бонус
-        seller.bonus = calculateBonus(index, sortedSellers.length, seller);
+        
+        const bonus = calculateBonus(index, sortedSellers.length, seller);
+        seller.bonus = typeof bonus === 'number' ? bonus : 0;
 
-        // Формируем топ-10 товаров
+        // Формируем топ-10 товаров (БЕЗ product_name - убираем его!)
         seller.top_products = Object.entries(seller.products_sold)
             .map(([sku, quantity]) => ({
                 sku: sku,
                 quantity: quantity,
-                product_name: productIndex[sku].name,
+                
             }))
             .sort((a, b) => b.quantity - a.quantity)
             .slice(0, 10);
